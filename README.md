@@ -5,13 +5,22 @@
 
 Cron V3 has been released!
 
+fork from github.com/robfig/cron/v3
+
+add new feature
+mock time support
+```go
+startTime, _ := time.ParseInLocation("2006-01-02 15:04:05", "2023-11-20 09:28:00", time.Local)
+cron := New(WithFixedStartTime(startTime))
+```
+
 To download the specific tagged release, run:
 ```bash
-go get github.com/robfig/cron/v3@v3.0.0
+go get github.com/coraldane/cron@v1.0.0
 ```
 Import it in your program as:
 ```go
-import "github.com/robfig/cron/v3"
+import "github.com/coraldane/cron"
 ```
 It requires Go 1.11 or later due to usage of Go Modules.
 

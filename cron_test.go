@@ -487,7 +487,6 @@ func TestJob(t *testing.T) {
 }
 
 func TestWithFixedDistance(t *testing.T) {
-
 	startTime, _ := time.ParseInLocation("2006-01-02 15:04:05", "2023-11-20 09:28:00", time.Local)
 	cron := New(WithSeconds(), WithChain(), WithFixedStartTime(startTime), WithLogger(DefaultLogger))
 	cron.AddFunc("4 * * * * ?", func() {
