@@ -368,6 +368,7 @@ type testJob struct {
 }
 
 func (t testJob) Run() {
+	fmt.Println("job start run...")
 	t.wg.Done()
 }
 
@@ -483,6 +484,21 @@ func TestJob(t *testing.T) {
 	if actualName := cron.Entry(job5).Job.(testJob).name; actualName != "job5" {
 		t.Error("wrong job retrieved:", actualName)
 	}
+}
+
+func TestWithFixedDistance(t *testing.T) {
+
+	startTime, _ := time.ParseInLocation("2006-01-02 15:04:05", "2023-11-20 09:28:00", time.Local)
+	cron := New(WithSeconds(), WithChain(), WithFixedStartTime(startTime), WithLogger(DefaultLogger))
+	cron.AddFunc("4 * * * * ?", func() {
+		t.Logf("run job, now: %v\n", time.Now())
+	})
+	//cron.AddJob("4 * 9-15 * * 1-5", testJob{wg, "job2"}) // Test getting an Entry pre-Start.
+
+	cron.Start()
+	defer cron.Stop()
+
+	select {}
 }
 
 // Issue #206

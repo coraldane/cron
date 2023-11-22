@@ -11,19 +11,20 @@ import (
 // specified by the schedule. It may be started, stopped, and the entries may
 // be inspected while running.
 type Cron struct {
-	entries   []*Entry
-	chain     Chain
-	stop      chan struct{}
-	add       chan *Entry
-	remove    chan EntryID
-	snapshot  chan chan []Entry
-	running   bool
-	logger    Logger
-	runningMu sync.Mutex
-	location  *time.Location
-	parser    ScheduleParser
-	nextID    EntryID
-	jobWaiter sync.WaitGroup
+	entries       []*Entry
+	chain         Chain
+	stop          chan struct{}
+	add           chan *Entry
+	remove        chan EntryID
+	snapshot      chan chan []Entry
+	running       bool
+	logger        Logger
+	runningMu     sync.Mutex
+	location      *time.Location
+	parser        ScheduleParser
+	nextID        EntryID
+	jobWaiter     sync.WaitGroup
+	fixedDistance int64 //add support for app start with a mock time
 }
 
 // ScheduleParser is an interface for schedule spec parsers that return a Schedule
@@ -97,17 +98,17 @@ func (s byTime) Less(i, j int) bool {
 //
 // Available Settings
 //
-//   Time Zone
-//     Description: The time zone in which schedules are interpreted
-//     Default:     time.Local
+//	Time Zone
+//	  Description: The time zone in which schedules are interpreted
+//	  Default:     time.Local
 //
-//   Parser
-//     Description: Parser converts cron spec strings into cron.Schedules.
-//     Default:     Accepts this spec: https://en.wikipedia.org/wiki/Cron
+//	Parser
+//	  Description: Parser converts cron spec strings into cron.Schedules.
+//	  Default:     Accepts this spec: https://en.wikipedia.org/wiki/Cron
 //
-//   Chain
-//     Description: Wrap submitted jobs to customize behavior.
-//     Default:     A chain that recovers panics and logs them to stderr.
+//	Chain
+//	  Description: Wrap submitted jobs to customize behavior.
+//	  Default:     A chain that recovers panics and logs them to stderr.
 //
 // See "cron.With*" to modify the default behavior.
 func New(opts ...Option) *Cron {
@@ -262,7 +263,7 @@ func (c *Cron) run() {
 		for {
 			select {
 			case now = <-timer.C:
-				now = now.In(c.location)
+				now = now.In(c.location).Add(time.Duration(c.fixedDistance) * time.Second)
 				c.logger.Info("wake", "now", now)
 
 				// Run every entry whose next time was less than now
@@ -315,7 +316,8 @@ func (c *Cron) startJob(j Job) {
 
 // now returns current time in c location
 func (c *Cron) now() time.Time {
-	return time.Now().In(c.location)
+	realTime := time.Now().In(c.location)
+	return realTime.Add(time.Duration(c.fixedDistance) * time.Second)
 }
 
 // Stop stops the cron scheduler if it is running; otherwise it does nothing.

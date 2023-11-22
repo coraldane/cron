@@ -43,3 +43,9 @@ func WithLogger(logger Logger) Option {
 		c.logger = logger
 	}
 }
+
+func WithFixedStartTime(startTime time.Time) Option {
+	return func(c *Cron) {
+		c.fixedDistance = startTime.Unix() - time.Now().Unix()
+	}
+}
